@@ -1,0 +1,21 @@
+<rdf:RDF
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+  xmlns:vCard='http://www.w3.org/2001/vcard-rdf/3.0#'
+  xmlns:ub='http://www.w3.org/2001/vcard-rdf/3.0#'
+   >
+
+  <rdf:Description rdf:about="http://University0.edu">
+    <vCard:FN>University0.edu</vCard:FN>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://Department0.University0.edu">
+    <vCard:FN>Department0.University0.edu</vCard:FN>
+    <ub:subOrganizationOf>http://University0.edu</ub:subOrganizationOf>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="http://Professor0">
+    <vCard:FN>Professor0</vCard:FN>
+    <ub:worksFor>http://Department0.University0.edu</ub:worksFor>
+  </rdf:Description>
+
+</rdf:RDF>
