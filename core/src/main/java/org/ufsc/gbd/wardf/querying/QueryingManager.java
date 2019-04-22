@@ -5,8 +5,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.jena.sparql.syntax.Element;
 import org.ufsc.gbd.wardf.mapping.VerticalPartitioningToCassandraMapper;
 import org.ufsc.gbd.wardf.model.Query;
+import org.ufsc.gbd.wardf.model.Shape;
 import org.ufsc.gbd.wardf.model.Triple;
+import org.ufsc.gbd.wardf.model.TriplePattern;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class QueryingManager {
@@ -17,10 +20,22 @@ public class QueryingManager {
 
         Element element = query.getQuery().getQueryPattern();
 
-        System.out.println(element.toString());
+        List<TriplePattern> triplePatterns = new ArrayList<>();
+
+
+
 
 
 
         return null;
+    }
+
+    private Shape getShape(List<TriplePattern> triplePatterns){
+
+
+
+
+
+        return Shape.STAR;
     }
 }
