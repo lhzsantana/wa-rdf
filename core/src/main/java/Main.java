@@ -6,6 +6,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.sparql.engine.optimizer.reorder.PatternTriple;
 import org.apache.jena.util.FileManager;
 import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Triple;
@@ -50,7 +51,7 @@ public class Main {
             Statement stmt = it.next();
             logger.info(stmt.toString());
 
-            Triple triple = new Triple(stmt);
+            Triple triple = new Triple(null);
             storageManager.store(triple);
         }
     }
