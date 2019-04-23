@@ -5,10 +5,14 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
+import org.ufsc.gbd.wardf.cache.Cache;
 import org.ufsc.gbd.wardf.dictionary.DistributionDictionary;
+import org.ufsc.gbd.wardf.mapping.MongoDBMapper;
+import org.ufsc.gbd.wardf.mapping.Neo4JMapper;
+import org.ufsc.gbd.wardf.mapping.RedisMapper;
 import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Shape;
+import org.ufsc.gbd.wardf.model.Triple;
 import org.ufsc.gbd.wardf.model.TriplePattern;
 import org.ufsc.gbd.wardf.wac.WAc;
 
@@ -18,7 +22,10 @@ public class QueryingManager {
 
     private final static Log logger = LogFactory.getLog(QueryingManager.class);
 
-    private final WAc wac = new WAc();
+    private final WAc wac = WAc.getInstance();
+    private final MongoDBMapper mongoDBMapper = new MongoDBMapper();
+    private final Neo4JMapper neo4JMapper = new Neo4JMapper();
+    private final Cache cache = new Cache();
 
     private final DistributionDictionary dictionary = new DistributionDictionary();
 
@@ -29,29 +36,44 @@ public class QueryingManager {
         for(Query subQuery:getSubQueries(query)) {
 
             List<TriplePattern> triplePatterns = subQuery.getTriplePatterns();
-
             Shape shape = subQuery.getShape();
 
-            wac.registerWorkload(shape, triplePatterns, query);
+            registerWorkload(shape, triplePatterns, subQuery);
 
-            if (shape.equals(Shape.CHAIN)) {
+            List<Triple> cacheResponse = cache.checkCache(triplePatterns);
 
-                dictionary.checkDictionary(triplePatterns);
+            if(cacheResponse!=null){
+                response.addAll(cacheResponse);
+            }else{
+                if (shape.equals(Shape.STAR) || shape.equals(Shape.SIMPLE)) {
+                    dictionary.checkDictionary(triplePatterns);
+                    List<Triple> starResponse = mongoDBMapper.query(subQuery);
+                    response.addAll(starResponse);
+                    cache(subQuery, starResponse);
+                }
 
-            }
-
-            if (shape.equals(Shape.STAR)) {
-
-                dictionary.checkDictionary(triplePatterns);
-
-            }
-
-            if (shape.equals(Shape.SIMPLE)) {
-
+                if (shape.equals(Shape.CHAIN)) {
+                    dictionary.checkDictionary(triplePatterns);
+                    List<Triple> chainResponse = neo4JMapper.query(subQuery);
+                    response.addAll(chainResponse);
+                    cache(subQuery, chainResponse);
+                }
             }
         }
 
         return response;
+    }
+
+    private void registerWorkload(Shape shape, List<TriplePattern> triplePatterns, Query query){
+        new Thread(() -> {
+            wac.registerWorkload(triplePatterns, query);
+        }).start();
+    }
+
+    private void cache(Query subquery, List<Triple> response){
+        new Thread(() -> {
+            cache.store(subquery, response);
+        }).start();
     }
 
     private List<Query> getSubQueries(Query query){

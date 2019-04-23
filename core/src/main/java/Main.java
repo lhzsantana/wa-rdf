@@ -26,14 +26,15 @@ public class Main {
 
     public static void main (String args[]) {
         Main main = new Main();
-        //main.test();
+
+        main.testStore();
 
         main.testQuery();
 
     }
 
-    private void test(){
-        // create an empty model
+    private void testStore(){
+
         Model model = ModelFactory.createDefaultModel();
 
         InputStream in = FileManager.get().open( testFileName );
@@ -41,7 +42,6 @@ public class Main {
             throw new IllegalArgumentException( "File: " + testFileName + " not found");
         }
 
-        // read the RDF/XML file
         model.read(in, "");
 
         StmtIterator it =  model.listStatements();
@@ -49,9 +49,7 @@ public class Main {
         while (it.hasNext()) {
 
             Statement stmt = it.next();
-            logger.info(stmt.toString());
-
-            Triple triple = new Triple(null);
+            Triple triple = new Triple(stmt);
             storageManager.store(triple);
         }
     }
@@ -64,7 +62,7 @@ public class Main {
 
         Query query = new Query(QueryFactory.create(sparql));
 
-        queryingManager.query(query);
+        //queryingManager.query(query);
     }
 
 }

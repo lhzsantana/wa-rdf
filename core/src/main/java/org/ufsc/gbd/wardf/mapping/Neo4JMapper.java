@@ -1,13 +1,19 @@
 package org.ufsc.gbd.wardf.mapping;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 import org.neo4j.driver.v1.*;
+import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Triple;
+import org.ufsc.gbd.wardf.model.TriplePattern;
 
 import java.util.List;
 
 public class Neo4JMapper {
+
+    private static final Log logger = LogFactory.getLog(Neo4JMapper.class);
 
 
     public void store(Statement stmt) {
@@ -30,8 +36,17 @@ public class Neo4JMapper {
 
     public void store(List<Triple> triples) {
 
+        logger.info("Storing in Neo4J");
         for(Triple triple:triples){
-            store(triple.getStatement());
+            //store(triple.getStatement());
         }
+    }
+
+    public List<Triple> query(Query subQuery) {
+        return query(subQuery.getTriplePatterns());
+    }
+
+    public List<Triple> query(List<TriplePattern> triplePatterns) {
+        return null;
     }
 }

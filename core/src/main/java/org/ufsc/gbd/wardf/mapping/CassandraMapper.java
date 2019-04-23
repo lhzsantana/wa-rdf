@@ -7,17 +7,17 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 
-public class VerticalPartitioningToCassandraMapper {
+public class CassandraMapper {
 
     private String keyspace;
     private CqlSession session;
 
-    public VerticalPartitioningToCassandraMapper(String keyspace){
+    public CassandraMapper(String keyspace){
         this.keyspace=keyspace;
         this.session = CqlSession.builder().withKeyspace(keyspace).build();
     }
 
-    final static Log logger = LogFactory.getLog(VerticalPartitioningToCassandraMapper.class);
+    final static Log logger = LogFactory.getLog(CassandraMapper.class);
 
     protected void store(Statement stmt) {
 

@@ -4,10 +4,13 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bson.Document;
+import org.ufsc.gbd.wardf.model.Fragment;
+import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Triple;
+import org.ufsc.gbd.wardf.model.TriplePattern;
 
 import java.util.List;
 
@@ -17,24 +20,23 @@ public class MongoDBMapper {
     static MongoDatabase db = mongoClient.getDatabase("wa-rdf");
     static MongoCollection<Document> triplesCollection = db.getCollection("triples");
 
-    private void store(Statement stmt) {
+    private static final Log logger = LogFactory.getLog(MongoDBMapper.class);
 
-        RDFNode subject = stmt.getSubject();
-        RDFNode predicate = stmt.getPredicate();
-        RDFNode object = stmt.getObject();
+    public void store(Fragment fragment) {
 
-        Document triple = new Document();
-        triple.put("subject", subject.toString());
-        triple.put("predicate", predicate.toString());
-        triple.put("object", object.toString());
+        logger.info("Storing in MongoDB");
 
-        triplesCollection.insertOne(triple);
+        Document documentFragment  = new Document();
+        documentFragment.put("uuid", fragment.getId());
+
+        triplesCollection.insertOne(documentFragment);
     }
 
-    public void store(List<Triple> triples) {
+    public List<Triple> query(Query subQuery) {
+        return query(subQuery.getTriplePatterns());
+    }
 
-        for(Triple triple:triples){
-            store(triple.getStatement());
-        }
+    public List<Triple> query(List<TriplePattern> triplePatterns) {
+        return null;
     }
 }

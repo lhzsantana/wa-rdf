@@ -1,14 +1,16 @@
 package org.ufsc.gbd.wardf.model;
 
+import org.apache.jena.rdf.model.Statement;
+
 public class Triple  {
 
-    private Triple triple;
+    private Statement statement;
 
-    public Triple(Triple triple){
-        this.triple=triple;
+    public Triple(Statement statement){
+        this.statement=statement;
     }
 
-    public Triple getTriple() {
-        return triple;
+    public Statement getTriple() {
+        return statement;
     }
 }
