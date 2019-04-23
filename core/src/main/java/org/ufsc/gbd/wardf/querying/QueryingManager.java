@@ -6,12 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.optimizer.reorder.PatternTriple;
-import org.apache.jena.sparql.syntax.Element;
-import org.apache.jena.sparql.syntax.ElementTriplesBlock;
-import org.ufsc.gbd.wardf.mapping.VerticalPartitioningToCassandraMapper;
+import org.ufsc.gbd.wardf.dictionary.DistributionDictionary;
 import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Shape;
 import org.ufsc.gbd.wardf.model.TriplePattern;
@@ -24,6 +19,8 @@ public class QueryingManager {
     private final static Log logger = LogFactory.getLog(QueryingManager.class);
 
     private final WAc wac = new WAc();
+
+    private final DistributionDictionary dictionary = new DistributionDictionary();
 
     public Set<Triple> query(Query query){
 
@@ -39,9 +36,13 @@ public class QueryingManager {
 
             if (shape.equals(Shape.CHAIN)) {
 
+                dictionary.checkDictionary(triplePatterns);
+
             }
 
             if (shape.equals(Shape.STAR)) {
+
+                dictionary.checkDictionary(triplePatterns);
 
             }
 
