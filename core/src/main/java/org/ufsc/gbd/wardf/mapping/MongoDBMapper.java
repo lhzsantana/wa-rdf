@@ -12,6 +12,7 @@ import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Triple;
 import org.ufsc.gbd.wardf.model.TriplePattern;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MongoDBMapper {
@@ -37,6 +38,8 @@ public class MongoDBMapper {
     }
 
     public List<Triple> query(List<TriplePattern> triplePatterns) {
-        return null;
+        List<Triple> triples = new ArrayList<>();
+
+        return triples;
     }
 }

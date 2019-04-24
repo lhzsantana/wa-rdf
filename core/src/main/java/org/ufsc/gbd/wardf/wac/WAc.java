@@ -2,7 +2,7 @@ package org.ufsc.gbd.wardf.wac;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Var;
 import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Shape;
 import org.ufsc.gbd.wardf.model.Triple;
@@ -46,7 +46,26 @@ public class WAc {
         return shapes;
     }
 
-    public List<TriplePattern> getTypicalWorkload(Triple triple, Shape shape) {
-        return null;
+    public List<TriplePattern> getTypicalWorkload(Triple triple) {
+
+        Set<TriplePattern> patterns = new HashSet<>();
+
+        TriplePattern subjectVariable = new TriplePattern(Var.alloc("").asNode(), triple.getTriple().getPredicate().asNode(), triple.getTriple().getObject().asNode());
+        for(Query query:tp2Q.get(subjectVariable)){
+            patterns.addAll(query.getTriplePatterns());
+        }
+
+        TriplePattern predicateVariable = new TriplePattern(triple.getTriple().getSubject().asNode(), Var.alloc("").asNode(), triple.getTriple().getObject().asNode());
+        for(Query query:tp2Q.get(predicateVariable)){
+            patterns.addAll(query.getTriplePatterns());
+        }
+
+        TriplePattern objectVariable = new TriplePattern(triple.getTriple().getSubject().asNode(), triple.getTriple().getPredicate().asNode(), Var.alloc("").asNode());
+        for(Query query:tp2Q.get(objectVariable)){
+            patterns.addAll(query.getTriplePatterns());
+        }
+
+        return new ArrayList<>(patterns);
     }
+
 }

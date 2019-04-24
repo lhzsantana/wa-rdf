@@ -37,7 +37,7 @@ public class Fragmenter {
 
         List<Triple> triples = new ArrayList<>();
 
-        List<TriplePattern> triplePatterns = wac.getTypicalWorkload(triple, shape);
+        List<TriplePattern> triplePatterns = wac.getTypicalWorkload(triple);
 
         if (shape.equals(Shape.STAR) ) {
             List<Triple> starResponse = mongoDBMapper.query(triplePatterns);
