@@ -49,7 +49,6 @@ public class Main {
 
             Statement stmt = it.next();
             Triple triple = new Triple(stmt);
-            storageManager.store(triple);
         }
     }
 
