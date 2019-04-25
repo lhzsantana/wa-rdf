@@ -24,6 +24,7 @@ public class MongoDBMapper extends NoSQLMapper {
 
     public MongoDBMapper(Partition partition){}
 
+    @Override
     public void store(Fragment fragment) {
 
         logger.info("Storing in MongoDB");
@@ -34,6 +35,7 @@ public class MongoDBMapper extends NoSQLMapper {
         triplesCollection.insertOne(documentFragment);
     }
 
+    @Override
     public List<Triple> query(Query subQuery) {
         return query(subQuery.getTriplePatterns());
     }
