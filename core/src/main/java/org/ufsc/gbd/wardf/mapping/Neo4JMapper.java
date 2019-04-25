@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 import org.neo4j.driver.v1.*;
+import org.ufsc.gbd.wardf.model.Partition;
 import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Triple;
 import org.ufsc.gbd.wardf.model.TriplePattern;
@@ -12,10 +13,13 @@ import org.ufsc.gbd.wardf.model.TriplePattern;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Neo4JMapper {
+public class Neo4JMapper extends NoSQLMapper {
 
     private static final Log logger = LogFactory.getLog(Neo4JMapper.class);
 
+    private Neo4JMapper(){}
+
+    public Neo4JMapper(Partition partition){}
 
     public void store(Statement stmt) {
         Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "rdf"));

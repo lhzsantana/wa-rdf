@@ -6,10 +6,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jena.graph.Node;
 import org.ufsc.gbd.wardf.cache.Cache;
-import org.ufsc.gbd.wardf.dictionary.DistributionDictionary;
+import org.ufsc.gbd.wardf.mapping.NoSQLMapper;
+import org.ufsc.gbd.wardf.partition.dictionary.DistributionDictionary;
 import org.ufsc.gbd.wardf.mapping.MongoDBMapper;
 import org.ufsc.gbd.wardf.mapping.Neo4JMapper;
-import org.ufsc.gbd.wardf.mapping.RedisMapper;
 import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Shape;
 import org.ufsc.gbd.wardf.model.Triple;
@@ -23,8 +23,6 @@ public class QueryingManager {
     private final static Log logger = LogFactory.getLog(QueryingManager.class);
 
     private final WAc wac = WAc.getInstance();
-    private final MongoDBMapper mongoDBMapper = new MongoDBMapper();
-    private final Neo4JMapper neo4JMapper = new Neo4JMapper();
     private final Cache cache = new Cache();
 
     private final DistributionDictionary dictionary = new DistributionDictionary();
@@ -45,19 +43,10 @@ public class QueryingManager {
             if(cacheResponse!=null){
                 response.addAll(cacheResponse);
             }else{
-                if (shape.equals(Shape.STAR) || shape.equals(Shape.SIMPLE)) {
-                    dictionary.checkDictionary(triplePatterns);
-                    List<Triple> starResponse = mongoDBMapper.query(subQuery);
-                    response.addAll(starResponse);
-                    cache(subQuery, starResponse);
-                }
-
-                if (shape.equals(Shape.CHAIN)) {
-                    dictionary.checkDictionary(triplePatterns);
-                    List<Triple> chainResponse = neo4JMapper.query(subQuery);
-                    response.addAll(chainResponse);
-                    cache(subQuery, chainResponse);
-                }
+                NoSQLMapper noSQLMapper = dictionary.checkDictionary(triplePatterns, subQuery.getShape());
+                List<Triple> starResponse = noSQLMapper.query(subQuery);
+                response.addAll(starResponse);
+                cache(subQuery, starResponse);
             }
         }
 

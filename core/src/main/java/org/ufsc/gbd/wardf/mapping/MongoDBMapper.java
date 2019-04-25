@@ -7,21 +7,22 @@ import com.mongodb.client.MongoDatabase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bson.Document;
-import org.ufsc.gbd.wardf.model.Fragment;
-import org.ufsc.gbd.wardf.model.Query;
-import org.ufsc.gbd.wardf.model.Triple;
-import org.ufsc.gbd.wardf.model.TriplePattern;
+import org.ufsc.gbd.wardf.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MongoDBMapper {
+public class MongoDBMapper extends NoSQLMapper {
 
     static MongoClient mongoClient = MongoClients.create();
     static MongoDatabase db = mongoClient.getDatabase("wa-rdf");
     static MongoCollection<Document> triplesCollection = db.getCollection("triples");
 
     private static final Log logger = LogFactory.getLog(MongoDBMapper.class);
+
+    private MongoDBMapper(){}
+
+    public MongoDBMapper(Partition partition){}
 
     public void store(Fragment fragment) {
 

@@ -30,7 +30,6 @@ public class Main {
         main.testStore();
 
         main.testQuery();
-
     }
 
     private void testStore(){
