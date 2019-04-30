@@ -1,11 +1,11 @@
 package org.ufsc.gbd.wardf.fragmenter;
 
-import org.ufsc.gbd.wardf.mapping.MongoDBMapper;
-import org.ufsc.gbd.wardf.mapping.Neo4JMapper;
+import org.ufsc.gbd.wardf.mapping.NoSQLMapper;
 import org.ufsc.gbd.wardf.model.Fragment;
 import org.ufsc.gbd.wardf.model.Shape;
 import org.ufsc.gbd.wardf.model.Triple;
 import org.ufsc.gbd.wardf.model.TriplePattern;
+import org.ufsc.gbd.wardf.partition.dictionary.DistributionDictionary;
 import org.ufsc.gbd.wardf.wac.WAc;
 
 import java.util.ArrayList;
@@ -13,10 +13,8 @@ import java.util.List;
 
 public class Fragmenter {
 
-    private final MongoDBMapper mongoDBMapper = new MongoDBMapper();
-    private final Neo4JMapper neo4JMapper = new Neo4JMapper();
-
     private WAc wac = WAc.getInstance();
+    private final DistributionDictionary dictionary = new DistributionDictionary();
 
     public List<Fragment> fragment(Triple triple) {
 
@@ -39,15 +37,10 @@ public class Fragmenter {
 
         List<TriplePattern> triplePatterns = wac.getTypicalWorkload(triple);
 
-        if (shape.equals(Shape.STAR) ) {
-            List<Triple> starResponse = mongoDBMapper.query(triplePatterns);
-            triples.addAll(starResponse);
-        }
+        NoSQLMapper noSQLMapper = dictionary.checkDictionary(triplePatterns, shape);
 
-        if (shape.equals(Shape.CHAIN)) {
-            List<Triple> chainResponse = neo4JMapper.query(triplePatterns);
-            triples.addAll(chainResponse);
-        }
+        List<Triple> starResponse = noSQLMapper.query(triplePatterns);
+        triples.addAll(starResponse);
 
         return triples;
     }

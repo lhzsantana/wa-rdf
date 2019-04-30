@@ -8,8 +8,6 @@ import org.apache.jena.graph.Node;
 import org.ufsc.gbd.wardf.cache.Cache;
 import org.ufsc.gbd.wardf.mapping.NoSQLMapper;
 import org.ufsc.gbd.wardf.partition.dictionary.DistributionDictionary;
-import org.ufsc.gbd.wardf.mapping.MongoDBMapper;
-import org.ufsc.gbd.wardf.mapping.Neo4JMapper;
 import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Shape;
 import org.ufsc.gbd.wardf.model.Triple;
@@ -43,7 +41,7 @@ public class QueryingManager {
             if(cacheResponse!=null){
                 response.addAll(cacheResponse);
             }else{
-                NoSQLMapper noSQLMapper = dictionary.checkDictionary(triplePatterns, subQuery.getShape());
+                NoSQLMapper noSQLMapper = getNoSQLMapper(triplePatterns, subQuery.getShape());
                 List<Triple> starResponse = noSQLMapper.query(subQuery);
                 response.addAll(starResponse);
                 cache(subQuery, starResponse);
@@ -51,6 +49,10 @@ public class QueryingManager {
         }
 
         return response;
+    }
+
+    public NoSQLMapper getNoSQLMapper(List<TriplePattern> triplePatterns, Shape shape){
+        return dictionary.checkDictionary(triplePatterns, shape);
     }
 
     private void registerWorkload(Shape shape, List<TriplePattern> triplePatterns, Query query){
@@ -67,33 +69,48 @@ public class QueryingManager {
 
     private List<Query> getSubQueries(Query query){
 
+        long startTime = System.nanoTime();
+
         Multimap<Node, TriplePattern> subjectStars = ArrayListMultimap.create();
         Multimap<Node, TriplePattern> objectStars = ArrayListMultimap.create();
+        Set<Node> objects = new HashSet<>();
+        Set<Node> subjects = new HashSet<>();
 
         for(TriplePattern triplePattern : query.getTriplePatterns()){
             subjectStars.put(triplePattern.getObject(), triplePattern);
             objectStars.put(triplePattern.getSubject(), triplePattern);
+            objects.add(triplePattern.getObject());
+            subjects.add(triplePattern.getSubject());
         }
 
         List<Query> subQueries = getSubQueriesStar(subjectStars);
         subQueries.addAll(getSubQueriesStar(objectStars));
-        subQueries.addAll(getSubQueriesChain(query, subjectStars, objectStars));
+        subQueries.addAll(getSubQueriesChain(query, objects, objectStars));
         subQueries.addAll(getSubQueriesSimple(query, subQueries));
+
+        long estimatedTime = System.nanoTime() - startTime;
+
+        logger.debug("Parser time " + estimatedTime);
 
         return subQueries;
     }
 
-    private List<Query> getSubQueriesChain(Query query, Multimap<Node, TriplePattern> subjects, Multimap<Node, TriplePattern> objects){
+    private Collection<? extends Query> getSubQueriesChain(Query query, Set<Node> objects, Multimap<Node, TriplePattern> objectStars) {
 
-        List<List<TriplePattern>> triplePatternsList = new ArrayList<>();
+        List<Query> subQueries = new ArrayList<>();
 
         for(TriplePattern triplePattern:query.getTriplePatterns()){
-
-            //chain is always on the border
-            if(subjects.get(triplePattern.getObject()).isEmpty() || objects.get(triplePattern.getSubject()).isEmpty()){
-                triplePatternsList.add(getChain(triplePattern, subjects, objects));
+            if(!objects.contains(triplePattern.getSubject())){
+                subQueries.addAll(getSubQueriesChain(query.getTriplePatterns().size(), triplePattern, objectStars));
             }
         }
+
+        return subQueries;
+    }
+
+    private List<Query> getSubQueriesChain(Integer numberTriplePatterns, TriplePattern firstTriplePattern, Multimap<Node, TriplePattern> objectStars){
+
+        List<List<TriplePattern>> triplePatternsList = getTriplePatternList(numberTriplePatterns, firstTriplePattern, objectStars);
 
         List<Query> subQueries = new ArrayList<>();
 
@@ -109,21 +126,35 @@ public class QueryingManager {
         return subQueries;
     }
 
-    private List<TriplePattern> getChain(TriplePattern triplePattern, Multimap<Node, TriplePattern> subjects, Multimap<Node, TriplePattern> objects){
+    private List<List<TriplePattern>>  getTriplePatternList(Integer numberTriplePatterns, TriplePattern triplePattern, Multimap<Node, TriplePattern> objectStars) {
 
-        List<TriplePattern> chains = new ArrayList<>();
+        List<List<TriplePattern>> newTriplePatternsList = new ArrayList<>();
+        List<List<TriplePattern>> oldTriplePatternsList = new ArrayList<>();
 
-        chains.add(triplePattern);
+        List<TriplePattern> chain = new ArrayList<>();
+        chain.add(triplePattern);
+        oldTriplePatternsList.add(chain);
 
-        for(TriplePattern triplePatternSubjects: subjects.get(triplePattern.getObject())){
-            chains.addAll(getChain(triplePatternSubjects, subjects, objects));
+        for(int i=0;i<numberTriplePatterns;i++){
+
+            for(List<TriplePattern> currentChain:oldTriplePatternsList){
+
+                for(TriplePattern currentTriplePattern:objectStars.get(currentChain.get(currentChain.size()-1).getObject())){
+                    List<TriplePattern> newChain = new ArrayList<>();
+                    newChain.addAll(currentChain);
+                    newChain.add(currentTriplePattern);
+                    newTriplePatternsList.add(newChain);
+                }
+            }
+
+            if(newTriplePatternsList.isEmpty()) break;
+
+            oldTriplePatternsList = new ArrayList<>();
+            oldTriplePatternsList.addAll(newTriplePatternsList);
+            newTriplePatternsList = new ArrayList<>();
         }
 
-        for(TriplePattern triplePatternSubjects: subjects.get(triplePattern.getObject())){
-            chains.addAll(getChain(triplePatternSubjects, subjects, objects));
-        }
-
-        return chains;
+        return oldTriplePatternsList;
     }
 
     private List<Query> getSubQueriesStar(Multimap<Node, TriplePattern> stars){

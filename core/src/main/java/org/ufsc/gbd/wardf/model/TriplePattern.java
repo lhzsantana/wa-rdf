@@ -7,26 +7,33 @@ import org.apache.jena.sparql.engine.optimizer.reorder.PatternTriple;
 
 public class TriplePattern {
 
-    private PatternTriple patternTriple;
+    private Node subject;
+    private Node predicate;
+    private Node object;
 
     public TriplePattern(Node subject, Node predicate, Node object){
-
-    }
-
-
-    public PatternTriple getPatternTriple() {
-        return patternTriple;
-    }
-
-    public Node getObject() {
-        return null;
+        this.subject=subject;
+        this.predicate=predicate;
+        this.object=object;
     }
 
     public Node getSubject() {
-        return null;
+        return subject;
+    }
+
+    public void setSubject(Node subject) {
+        this.subject = subject;
     }
 
     public Node getPredicate() {
-        return null;
+        return predicate;
+    }
+
+    public Node getObject() {
+        return object;
+    }
+
+    public void setObject(Node object) {
+        this.object = object;
     }
 }

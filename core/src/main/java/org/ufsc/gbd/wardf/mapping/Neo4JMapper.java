@@ -12,6 +12,8 @@ import java.util.List;
 
 public class Neo4JMapper extends NoSQLMapper {
 
+    private static Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "rdf"));
+
     private static final Log logger = LogFactory.getLog(Neo4JMapper.class);
 
     private Neo4JMapper(){}
@@ -25,8 +27,6 @@ public class Neo4JMapper extends NoSQLMapper {
 
     @Override
     public void store(Fragment fragment) {
-
-        Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "rdf"));
 
         for(Triple triple: fragment.getTriples()) {
 

@@ -42,7 +42,6 @@ public class MongoDBMapper extends NoSQLMapper {
 
     public List<Triple> query(List<TriplePattern> triplePatterns) {
         List<Triple> triples = new ArrayList<>();
-
         return triples;
     }
 }

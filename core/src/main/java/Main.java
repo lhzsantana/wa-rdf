@@ -35,13 +35,32 @@ public class Main {
             server.store(triple);
         }
 
+        String complexSPARQL = "SELECT ?x WHERE { " +
+                "?x <p1> ?a . " +
+                "?x <p2> ?b . " +
+                "?a <p1> ?b . " +
+                "?b <p2> ?c . " +
+                "?c <p3> ?d . " +
+                "?x <p3> ?c . }";
 
-        String sparql = "SELECT ?thing ?str WHERE { " +
-                "?thing a <predicate> . " +
-                "?thing <predicate> ?str .}";
+        Query complexQuery = new Query(QueryFactory.create(complexSPARQL));
+        server.query(complexQuery);
 
-        Query query = new Query(QueryFactory.create(sparql));
-        server.query(query);
+        String chainSPARQL = "SELECT ?x WHERE { " +
+                "?a <p1> ?b . " +
+                "?b <p2> ?c . " +
+                "?c <p3> ?d . }";
+
+        Query chainQuery = new Query(QueryFactory.create(chainSPARQL));
+        server.query(chainQuery);
+
+        String starSPARQL = "SELECT ?x WHERE { " +
+                "?x <p1> ?a . " +
+                "?x <p2> ?b . " +
+                "?x <p3> ?c . }";
+
+        Query starQuery = new Query(QueryFactory.create(starSPARQL));
+        server.query(starQuery);
     }
 
 }
