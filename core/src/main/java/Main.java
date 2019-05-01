@@ -1,3 +1,4 @@
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -32,7 +33,7 @@ public class Main {
         while (it.hasNext()) {
             Statement stmt = it.next();
             Triple triple = new Triple(stmt);
-            server.store(triple);
+            //server.store(triple);
         }
 
         String complexSPARQL = "SELECT ?x WHERE { " +
@@ -52,7 +53,7 @@ public class Main {
                 "?c <p3> ?d . }";
 
         Query chainQuery = new Query(QueryFactory.create(chainSPARQL));
-        server.query(chainQuery);
+        //server.query(chainQuery);
 
         String starSPARQL = "SELECT ?x WHERE { " +
                 "?x <p1> ?a . " +
@@ -60,7 +61,10 @@ public class Main {
                 "?x <p3> ?c . }";
 
         Query starQuery = new Query(QueryFactory.create(starSPARQL));
-        server.query(starQuery);
+        //server.query(starQuery);
+
+        Triple triple = new Triple(NodeFactory.createURI("a"), NodeFactory.createURI("file:///home/luiz.santana/Leaf/wa-rdf/p2"), NodeFactory.createURI("b"));
+        server.store(triple);
     }
 
 }

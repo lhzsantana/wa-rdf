@@ -31,4 +31,11 @@ public class Fragment {
         return triples;
     }
 
+    public Triple getCoreTriple() {
+        return coreTriple;
+    }
+
+    public void setCoreTriple(Triple coreTriple) {
+        this.coreTriple = coreTriple;
+    }
 }

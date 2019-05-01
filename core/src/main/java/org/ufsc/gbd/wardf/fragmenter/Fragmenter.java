@@ -6,10 +6,12 @@ import org.ufsc.gbd.wardf.model.Shape;
 import org.ufsc.gbd.wardf.model.Triple;
 import org.ufsc.gbd.wardf.model.TriplePattern;
 import org.ufsc.gbd.wardf.partition.dictionary.DistributionDictionary;
+import org.ufsc.gbd.wardf.wac.TypicalWorkload;
 import org.ufsc.gbd.wardf.wac.WAc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class Fragmenter {
 
@@ -20,27 +22,26 @@ public class Fragmenter {
 
         List<Fragment> fragments = new ArrayList<>();
 
-        for(Shape shape : wac.getShape(triple)){
+        TypicalWorkload typicalWorkload = wac.getTypicalWorkload(triple);
+
+        for(Shape shape : typicalWorkload.getShapes()){
 
             List<Triple> triples = new ArrayList<>();
             triples.add(triple);
-            triples.addAll(expandTriple(triple, shape));
+            triples.addAll(expandTriple(shape, typicalWorkload.getTriplePatterns()));
             fragments.add(new Fragment(triple, shape, triples));
         }
 
         return fragments;
     }
 
-    private List<Triple> expandTriple(Triple triple, Shape shape){
+    private List<Triple> expandTriple(Shape shape, Set<TriplePattern> triplePatterns){
 
         List<Triple> triples = new ArrayList<>();
 
-        List<TriplePattern> triplePatterns = wac.getTypicalWorkload(triple);
-
         NoSQLMapper noSQLMapper = dictionary.checkDictionary(triplePatterns, shape);
 
-        List<Triple> starResponse = noSQLMapper.query(triplePatterns);
-        triples.addAll(starResponse);
+        triples.addAll(noSQLMapper.query(triplePatterns));
 
         return triples;
     }

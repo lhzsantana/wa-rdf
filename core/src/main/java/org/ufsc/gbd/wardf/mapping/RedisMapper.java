@@ -7,8 +7,7 @@ import org.ufsc.gbd.wardf.model.Triple;
 import org.ufsc.gbd.wardf.model.TriplePattern;
 import redis.clients.jedis.Jedis;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class RedisMapper {
 
@@ -18,11 +17,11 @@ public class RedisMapper {
         jedis.set(subquery.getTriplePatterns().toString(), response.toString());
     }
 
-    public List<Triple> query(List<TriplePattern> triplePatterns) {
+    public Set<Triple> query(Set<TriplePattern> triplePatterns) {
 
         jedis.get(triplePatterns.toString());
 
-        return null;
+        return new HashSet<>();
     }
 
     public void expire(List<Triple> triples) {

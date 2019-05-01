@@ -39,9 +39,9 @@ public class DistributionDictionary {
         return noSQLMapper;
     }
 
-    public NoSQLMapper checkDictionary(List<TriplePattern> triplePatterns, Shape shape){
+    public NoSQLMapper checkDictionary(Set<TriplePattern> triplePatterns, Shape shape){
 
-        if (shape.equals(Shape.CHAIN)) {
+        if (shape.equals(Shape.STAR)) {
             return new MongoDBMapper(new Partition());
         }
         else{

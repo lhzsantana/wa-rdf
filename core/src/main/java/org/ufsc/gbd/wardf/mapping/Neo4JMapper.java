@@ -2,6 +2,7 @@ package org.ufsc.gbd.wardf.mapping;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 import org.neo4j.driver.v1.*;
@@ -9,6 +10,7 @@ import org.ufsc.gbd.wardf.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class Neo4JMapper extends NoSQLMapper {
 
@@ -30,9 +32,9 @@ public class Neo4JMapper extends NoSQLMapper {
 
         for(Triple triple: fragment.getTriples()) {
 
-            RDFNode subject = triple.getTriple().getSubject();
-            RDFNode predicate = triple.getTriple().getPredicate();
-            RDFNode object = triple.getTriple().getObject();
+            Node subject = triple.getSubject();
+            Node predicate = triple.getPredicate();
+            Node object = triple.getObject();
 
             try (Session session = driver.session()) {
 
@@ -45,7 +47,7 @@ public class Neo4JMapper extends NoSQLMapper {
         }
     }
 
-    public List<Triple> query(List<TriplePattern> triplePatterns) {
+    public List<Triple> query(Set<TriplePattern> triplePatterns) {
 
         List<Triple> triples = new ArrayList<>();
 

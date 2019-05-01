@@ -2,6 +2,7 @@ package org.ufsc.gbd.wardf.wac;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.ufsc.gbd.wardf.model.Query;
 import org.ufsc.gbd.wardf.model.Shape;
@@ -16,6 +17,9 @@ public class WAc {
     private static Map<String, TriplePattern> tpMap = new HashMap<>();
     private static Multimap<TriplePattern, Query> tp2Q = ArrayListMultimap.create();
     private static Multimap<Query, TriplePattern> q2TP = ArrayListMultimap.create();
+    private static Multimap<String, Query> s2Q = ArrayListMultimap.create();
+    private static Multimap<String, Query> p2Q = ArrayListMultimap.create();
+    private static Multimap<String, Query> o2Q = ArrayListMultimap.create();
 
     private WAc(){ }
 
@@ -24,48 +28,56 @@ public class WAc {
         return instance;
     }
 
-    public void registerWorkload(List<TriplePattern> triplePatterns, Query query){
+    public void registerWorkload(Set<TriplePattern> triplePatterns, Query query){
 
         for(TriplePattern triplePattern : triplePatterns){
             tpMap.put(UUID.randomUUID().toString(), triplePattern);
             tp2Q.put(triplePattern, query);
             q2TP.put(query, triplePattern);
+
+            if(!triplePattern.getSubject().isVariable()) s2Q.put(getIdentifier(triplePattern.getSubject()), query);
+            if(!triplePattern.getPredicate().isVariable()) p2Q.put(getIdentifier(triplePattern.getPredicate()), query);
+            if(!triplePattern.getObject().isVariable()) o2Q.put(getIdentifier(triplePattern.getObject()), query);
         }
     }
 
-    public List<Shape> getShape(Triple triple) {
-        return match(triple);
+    private String getIdentifier(Node node){
+        if(node.isVariable()){
+            return node.getName();
+        }
+        if(node.isURI()){
+            return node.getURI();
+        }
+        if(node.isLiteral()){
+            return node.getLiteral().getValue().toString();
+        }
+        if(node.isBlank()){
+            return "";
+        }
+
+        return "";
     }
 
-    private List<Shape> match(Triple triple){
-        List<Shape> shapes = new ArrayList<>();
+    public TypicalWorkload getTypicalWorkload(Triple triple){
+        Set<Shape> shapes = new HashSet<>();
+        Set<TriplePattern> triplePatterns = new HashSet<>();
 
-        shapes.add(Shape.CHAIN);
-        shapes.add(Shape.STAR);
+        List<Query> queries = new ArrayList<>();
 
-        return shapes;
-    }
+        queries.addAll(s2Q.get(getIdentifier(triple.getSubject())));
+        queries.addAll(p2Q.get(getIdentifier(triple.getPredicate())));
+        queries.addAll(o2Q.get(getIdentifier(triple.getObject())));
 
-    public List<TriplePattern> getTypicalWorkload(Triple triple) {
-
-        Set<TriplePattern> patterns = new HashSet<>();
-
-        TriplePattern subjectVariable = new TriplePattern(Var.alloc("").asNode(), triple.getTriple().getPredicate().asNode(), triple.getTriple().getObject().asNode());
-        for(Query query:tp2Q.get(subjectVariable)){
-            patterns.addAll(query.getTriplePatterns());
+        for(Query query:queries){
+            shapes.add(query.getShape());
+            triplePatterns.addAll(query.getTriplePatterns());
         }
 
-        TriplePattern predicateVariable = new TriplePattern(triple.getTriple().getSubject().asNode(), Var.alloc("").asNode(), triple.getTriple().getObject().asNode());
-        for(Query query:tp2Q.get(predicateVariable)){
-            patterns.addAll(query.getTriplePatterns());
-        }
+        TypicalWorkload typicalWorkload = new TypicalWorkload();
+        typicalWorkload.setShapes(shapes);
+        typicalWorkload.setTriplePatterns(triplePatterns);
 
-        TriplePattern objectVariable = new TriplePattern(triple.getTriple().getSubject().asNode(), triple.getTriple().getPredicate().asNode(), Var.alloc("").asNode());
-        for(Query query:tp2Q.get(objectVariable)){
-            patterns.addAll(query.getTriplePatterns());
-        }
-
-        return new ArrayList<>(patterns);
+        return typicalWorkload;
     }
 
 }

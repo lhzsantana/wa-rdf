@@ -7,11 +7,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.jena.graph.Node;
 import org.ufsc.gbd.wardf.cache.Cache;
 import org.ufsc.gbd.wardf.mapping.NoSQLMapper;
+import org.ufsc.gbd.wardf.model.*;
 import org.ufsc.gbd.wardf.partition.dictionary.DistributionDictionary;
-import org.ufsc.gbd.wardf.model.Query;
-import org.ufsc.gbd.wardf.model.Shape;
-import org.ufsc.gbd.wardf.model.Triple;
-import org.ufsc.gbd.wardf.model.TriplePattern;
 import org.ufsc.gbd.wardf.wac.WAc;
 
 import java.util.*;
@@ -31,12 +28,12 @@ public class QueryingManager {
 
         for(Query subQuery:getSubQueries(query)) {
 
-            List<TriplePattern> triplePatterns = subQuery.getTriplePatterns();
+            Set<TriplePattern> triplePatterns = subQuery.getTriplePatterns();
             Shape shape = subQuery.getShape();
 
             registerWorkload(shape, triplePatterns, subQuery);
 
-            List<Triple> cacheResponse = cache.checkCache(triplePatterns);
+            Set<Triple> cacheResponse = cache.checkCache(triplePatterns);
 
             if(cacheResponse!=null){
                 response.addAll(cacheResponse);
@@ -51,11 +48,11 @@ public class QueryingManager {
         return response;
     }
 
-    public NoSQLMapper getNoSQLMapper(List<TriplePattern> triplePatterns, Shape shape){
+    public NoSQLMapper getNoSQLMapper(Set<TriplePattern> triplePatterns, Shape shape){
         return dictionary.checkDictionary(triplePatterns, shape);
     }
 
-    private void registerWorkload(Shape shape, List<TriplePattern> triplePatterns, Query query){
+    private void registerWorkload(Shape shape, Set<TriplePattern> triplePatterns, Query query){
         new Thread(() -> {
             wac.registerWorkload(triplePatterns, query);
         }).start();
@@ -63,7 +60,7 @@ public class QueryingManager {
 
     private void cache(Query subquery, List<Triple> response){
         new Thread(() -> {
-            cache.store(subquery, response);
+            //cache.store(subquery, response);
         }).start();
     }
 
@@ -116,8 +113,8 @@ public class QueryingManager {
 
         for(List<TriplePattern> triplePattern : triplePatternsList) {
             if(triplePattern.size()>2) {
-                Query subQuery = new Query();
-                subQuery.setTriplePatterns(new ArrayList<>(triplePattern));
+                ChainQuery subQuery = new ChainQuery();
+                subQuery.setChain(triplePattern);
                 subQuery.setShape(Shape.CHAIN);
                 subQueries.add(subQuery);
             }
@@ -126,7 +123,7 @@ public class QueryingManager {
         return subQueries;
     }
 
-    private List<List<TriplePattern>>  getTriplePatternList(Integer numberTriplePatterns, TriplePattern triplePattern, Multimap<Node, TriplePattern> objectStars) {
+    private List<List<TriplePattern>> getTriplePatternList(Integer numberTriplePatterns, TriplePattern triplePattern, Multimap<Node, TriplePattern> objectStars) {
 
         List<List<TriplePattern>> newTriplePatternsList = new ArrayList<>();
         List<List<TriplePattern>> oldTriplePatternsList = new ArrayList<>();
@@ -165,9 +162,10 @@ public class QueryingManager {
             Collection<TriplePattern> triplePatterns = stars.get(node);
 
             if(triplePatterns.size()>2){
-                Query subQuery = new Query();
-                subQuery.setTriplePatterns(new ArrayList<>(triplePatterns));
+                StarQuery subQuery = new StarQuery();
+                subQuery.setTriplePatterns(new HashSet<>(triplePatterns));
                 subQuery.setShape(Shape.STAR);
+                subQuery.setCenter(node);
                 subQueries.add(subQuery);
             }
         }
@@ -188,7 +186,7 @@ public class QueryingManager {
         for(TriplePattern triplePattern:query.getTriplePatterns()){
             if(!triplePatterns.contains(triplePattern)){
 
-                List<TriplePattern> simpleTriplePatterns = new ArrayList<>();
+                Set<TriplePattern> simpleTriplePatterns = new HashSet<>();
                 simpleTriplePatterns.add(triplePattern);
 
                 Query subQuery = new Query();

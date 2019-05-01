@@ -6,11 +6,13 @@ import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Query {
 
-    private List<TriplePattern> triplePatterns = new ArrayList<>();
+    private Set<TriplePattern> triplePatterns = new HashSet<>();
 
     private org.apache.jena.query.Query q;
 
@@ -33,11 +35,11 @@ public class Query {
         return q;
     }
 
-    public List<TriplePattern> getTriplePatterns() {
+    public Set<TriplePattern> getTriplePatterns() {
         return triplePatterns;
     }
 
-    public void setTriplePatterns(List<TriplePattern> triplePatterns) {
+    public void setTriplePatterns(Set<TriplePattern> triplePatterns) {
         this.triplePatterns = triplePatterns;
     }
 
