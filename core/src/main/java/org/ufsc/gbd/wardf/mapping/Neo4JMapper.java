@@ -6,6 +6,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 import org.neo4j.driver.v1.*;
+import org.ufsc.gbd.wardf.mapping.node.Node2Json;
 import org.ufsc.gbd.wardf.model.*;
 
 import java.util.ArrayList;
@@ -38,11 +39,11 @@ public class Neo4JMapper extends NoSQLMapper {
 
             try (Session session = driver.session()) {
 
-                String statement = "CREATE (a:RDFNode { name: '" + subject.toString() + "' })" +
-                        "CREATE (b:RDFNode { name: '" + object.toString() + "' })" +
-                        "CREATE (a)-[r:RELTYPE { name: '" + predicate.toString() + "' }]->(b)";
+                String statement = "CREATE (a:RDFNode { name: '" + Node2Json.mapNode(subject) + "' })" +
+                        "CREATE (b:RDFNode { name: '" + Node2Json.mapNode(object) + "' })" +
+                        "CREATE (a)-[r:RELTYPE { name: '" + Node2Json.mapNode(predicate) + "' }]->(b)";
 
-                StatementResult rs = session.run(statement);
+                session.run(statement);
             }
         }
     }
@@ -50,6 +51,25 @@ public class Neo4JMapper extends NoSQLMapper {
     public List<Triple> query(Set<TriplePattern> triplePatterns) {
 
         List<Triple> triples = new ArrayList<>();
+
+        for(TriplePattern triplePattern: triplePatterns) {
+
+            Node subject = triplePattern.getSubject();
+            Node predicate = triplePattern.getPredicate();
+            Node object = triplePattern.getObject();
+
+            try (Session session = driver.session()) {
+
+                String statement = "MATCH (n:RDFNode) RETURN n.name";
+
+                StatementResult rs = session.run(statement);
+
+                while(rs.hasNext()){
+                    System.out.println(rs.toString());
+                }
+            }
+        }
+
 
         return triples;
     }

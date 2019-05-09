@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.ufsc.gbd.wardf.mapping.node.Node2Json;
 import org.ufsc.gbd.wardf.model.*;
 
 import java.util.ArrayList;
@@ -39,12 +40,27 @@ public class MongoDBMapper extends NoSQLMapper {
         Document documentFragment  = new Document();
         documentFragment.put("uuid", fragment.getId());
 
-        documentFragment.put("predicate", fragment.getCoreTriple().getPredicate().toString());
+        Triple coreTriple = fragment.getCoreTriple();
+
+        documentFragment.put("subject", Node2Json.mapNode(coreTriple.getSubject()));
+        documentFragment.put("predicate", Node2Json.mapNode(coreTriple.getPredicate()));
+        documentFragment.put("object",  Node2Json.mapNode(coreTriple.getObject()));
 
         for(Triple triple:fragment.getTriples()){
 
             Document subjectSubDocument  = new Document();
-            documentFragment.put("subject", subjectSubDocument);
+
+            subjectSubDocument.put("subject",  Node2Json.mapNode(coreTriple.getSubject()));
+            subjectSubDocument.put("predicate", Node2Json.mapNode(coreTriple.getPredicate()));
+            subjectSubDocument.put("object", Node2Json.mapNode(coreTriple.getObject()));
+
+            if(coreTriple.getObject().toString().equals(triple.getSubject().toString())){
+                documentFragment.put("subtriple-i", subjectSubDocument);
+            }
+
+            if(coreTriple.getSubject().toString().equals(triple.getObject().toString())){
+                documentFragment.put("subtriple-i", subjectSubDocument);
+            }
         }
 
         System.out.println(documentFragment.toJson());
@@ -59,7 +75,8 @@ public class MongoDBMapper extends NoSQLMapper {
 
     @Override
     public List<Triple> query(Set<TriplePattern> triplePatterns) {
-        return null;
+        List<Triple> triples = new ArrayList<>();
+        return triples;
     }
 
     public List<Triple> query(StarQuery subQuery) {
@@ -73,9 +90,9 @@ public class MongoDBMapper extends NoSQLMapper {
         for(TriplePattern triplePattern:subQuery.getTriplePatterns()){
 
             Document subjectSubDocument  = new Document();
-            documentFragment.put("subject", triplePattern.getSubject().toString());
-            documentFragment.put("predicate", triplePattern.getPredicate().toString());
-            documentFragment.put("object", triplePattern.getObject().toString());
+            subjectSubDocument.put("subject", Node2Json.mapNode(triplePattern.getSubject()));
+            subjectSubDocument.put("predicate", Node2Json.mapNode(triplePattern.getPredicate()));
+            subjectSubDocument.put("object",  Node2Json.mapNode(triplePattern.getObject()));
 
             documentFragment.put("subdocument", subjectSubDocument);
         }
